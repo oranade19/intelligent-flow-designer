@@ -1,0 +1,288 @@
+---
+swagger: "2.0"
+info:
+  description: "This api retrieves available deployments from a namespace and endpoint provided by the deployment."
+  version: "1.0"  
+  title: Discover deployment details
+
+host: ifd.com:8080
+basePath: /deploymentDiscovery/v1.0
+tags:
+  - name: getDomains
+  - name: getDeployments
+  - name: getEndpoints
+schemes:
+  - https
+consumes:
+  - application/json;charset=utf-8
+produces:
+  - application/json;charset=utf-8
+
+paths:
+  /domains:
+    get:
+      tags:
+        - getDomains
+      summary: List domains and subdomains
+      description: "This service lists deployment entities related to the provided search criteria."
+      operationId: domains
+      schemes:
+        - https
+      consumes:
+        - application/json;charset=utf-8
+      produces:
+        - application/json;charset=utf-8
+      responses:
+        200:
+          description: |
+            *OK* - The deployment list was retrieved successfully.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Domain'
+        400:
+          description: |
+            *Bad Request* - The server cannot process the request due to a malformed syntax or invalid value in the query parameters, validation exceptions, and so on.
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: |
+            *Not Found* - The server did not find anything matching the request URI. The response can be caused by missing path parameters, invalid web resource, and so on.
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: |
+            *Internal Server Error* - The server encountered an unexpected condition that prevented it from fulfilling the request.
+          schema:
+            $ref: '#/definitions/Error'
+        502:
+          description: |
+            *Bad Gateway* - The server encountered an unexpected condition when calling another service.
+          schema:
+            $ref: '#/definitions/Error'
+      
+  /deployments:
+    get:
+      tags:
+        - getDeployments
+      summary: List deployments
+      description: "This service lists deployment entities related to the provided search criteria."
+      operationId: deployments
+      schemes:
+        - https
+      consumes:
+        - application/json;charset=utf-8
+      produces:
+        - application/json;charset=utf-8
+      parameters:
+        - name: domain
+          in: query
+          description: "The tag of domain for which deployments are to be listed"
+          required: false
+          type: string
+        - name: subdomain
+          in: query
+          description: "The tag of subdomain for which deployments are to be listed"
+          required: false
+          type: string
+      responses:
+        200:
+          description: |
+            *OK* - The deployment list was retrieved successfully.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Deployment'
+        400:
+          description: |
+            *Bad Request* - The server cannot process the request due to a malformed syntax or invalid value in the query parameters, validation exceptions, and so on.
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: |
+            *Not Found* - The server did not find anything matching the request URI. The response can be caused by missing path parameters, invalid web resource, and so on.
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: |
+            *Internal Server Error* - The server encountered an unexpected condition that prevented it from fulfilling the request.
+          schema:
+            $ref: '#/definitions/Error'
+        502:
+          description: |
+            *Bad Gateway* - The server encountered an unexpected condition when calling another service.
+          schema:
+            $ref: '#/definitions/Error'
+    
+  /deployment/{deployment-name}/endpoints:
+    get:
+      tags: 
+      - getEndpoints
+      summary: List endpoints available from a deployment
+      description: "This service lists deployment entities related to the provided search criteria."
+      operationId: endpoints
+      schemes:
+        - https
+      consumes:
+        - application/json;charset=utf-8
+      produces:
+        - application/json;charset=utf-8
+      parameters:
+        - name: deployment-name
+          in: path
+          description: "Name of deployment for which available endpoints to be retrieved."
+          required: true
+          type: string
+      responses:
+        200:
+          description: |
+            *OK* - The deployment list was retrieved successfully.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Endpoint'
+        400:
+          description: |
+            *Bad Request* - The server cannot process the request due to a malformed syntax or invalid value in the query parameters, validation exceptions, and so on.
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: |
+            *Not Found* - The server did not find anything matching the request URI. The response can be caused by missing path parameters, invalid web resource, and so on.
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: |
+            *Internal Server Error* - The server encountered an unexpected condition that prevented it from fulfilling the request.
+          schema:
+            $ref: '#/definitions/Error'
+        502:
+          description: |
+            *Bad Gateway* - The server encountered an unexpected condition when calling another service
+          schema:
+            $ref: '#/definitions/Error'
+        
+definitions:
+  Domain:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the domain"
+      subdomains:
+        description: "List of names of subdomains in the domain"
+        type: array
+        items:
+          type: string
+  
+  Deployment:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the deployment."
+        readOnly: true
+      route:
+        type: string
+        description: "Route to the deployment service."
+      tag:
+        type: string
+        description: "Tag of the deployment."
+      operations:
+        description: "Operations offered by the deployment."
+        type: array
+        items: 
+          type: string
+      domainName:
+        type: string
+        description: "Name of the domain to which the deployment belongs."
+      subdomainName:
+        type: string
+        description: "Name of the subdomain to which the deployment belongs."
+
+  Endpoint:
+    type: object
+    properties:
+      url:
+        type: string
+        description: "URL of the endpoint. Starting from base-url"
+      type:
+        type: string
+        description: "HTTP operation type"
+      headers:
+        description: "Header parameters supported by the endpoint."
+        type: array
+        items:
+          $ref: '#/definitions/HeaderParameter'
+      pathParameters:
+        description: "Path parameters supported by endpoint"
+        type: array
+        items:
+          $ref: '#/definitions/PathParameter'
+      queryParameters:
+        type: array
+        items:
+          $ref: '#/definitions/QueryParameter'
+      requestBody:
+        type: string
+        description: "json structure of request body if the operation is POST"
+      responseBody:
+        type: string
+        description: "json structure of response body"
+      mandatoryBodyFields:
+        description: "List of names of mandatory fields in request body. Will be present only when the endpoint type is POST"
+        type: array
+        items:
+          type: string
+        
+  HeaderParameter:
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      mandatory:
+        type: boolean
+      pattern:
+        type: string
+      
+  PathParameter:
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+  
+  QueryParameter:
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      mandatory:
+        type: boolean
+      pattern:
+        type: string
+  
+  Error:
+    type: object
+    required:
+      - code
+      - reason
+    properties:
+      code:
+        type: string
+        description: |
+          Error code relevant to an application, defined in the API or in a common list
+      reason:
+        type: string
+        description: |
+          Explanation of the reason for the error that can be displayed to a user
+      message:
+        type: string
+        description: |
+          Additional information about the error  and corrective actions related to the error that can be displayed to a user
+  
